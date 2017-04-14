@@ -115,23 +115,23 @@ services:
           cpus: '0.10'
           memory: 64M
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.3.0
-    volumes:
-      - elastic_data:/usr/share/elasticsearch/data
-    environment:
-      - network.host=0.0.0.0
-      - discovery.zen.minimum_master_nodes=1
-      - discovery.zen.ping.unicast.hosts=elasticsearch
-    networks:
-      - monitor-net
-    deploy:
-      mode: replicated
-      replicas: 3
-      resources:
-        limits:
-          cpus: '0.10'
-          memory: 512M
-        reservations:
-          cpus: '0.10'
-          memory: 128M
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:5.3.0
+  #   volumes:
+  #     - elastic_data:/usr/share/elasticsearch/data
+  #   environment:
+  #     - network.host=0.0.0.0
+  #     - discovery.zen.minimum_master_nodes=1
+  #     - discovery.zen.ping.unicast.hosts=elasticsearch
+  #   networks:
+  #     - monitor-net
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 3
+  #     resources:
+  #       limits:
+  #         cpus: '0.10'
+  #         memory: 512M
+  #       reservations:
+  #         cpus: '0.10'
+  #         memory: 128M
