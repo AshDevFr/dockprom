@@ -11,20 +11,24 @@ volumes:
 services:
 
   prometheus:
-    image: prom/prometheus
+    image: ashdev/prometheus
     volumes:
-      - ./prometheus/:/etc/prometheus/
       - prometheus_data:/prometheus
     command:
       - '-config.file=/etc/prometheus/prometheus.yml'
       - '-storage.local.path=/prometheus'
       - '-alertmanager.url=http://alertmanager:9093'
       - '-storage.local.memory-chunks=100000'
+    ports:
+      - 9090:9090
     networks:
       - monitor-net
     deploy:
       mode: replicated
       replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
       resources:
         limits:
           cpus: '0.50'
@@ -39,11 +43,16 @@ services:
       - grafana_data:/var/lib/grafana
     env_file:
       - user.config
+    ports:
+      - 3000:3000
     networks:
       - monitor-net
     deploy:
       mode: replicated
       replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
       resources:
         limits:
           cpus: '0.50'
@@ -53,12 +62,12 @@ services:
           memory: 32M
 
   alertmanager:
-    image: prom/alertmanager
-    volumes:
-      - ./alertmanager/:/etc/alertmanager/
+    image: ashdev/alertmanager
     command:
       - '-config.file=/etc/alertmanager/config.yml'
       - '-storage.path=/alertmanager'
+    ports:
+      - 9093:9093
     networks:
       - monitor-net
     deploy:
