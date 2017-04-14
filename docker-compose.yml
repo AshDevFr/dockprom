@@ -117,7 +117,6 @@ services:
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch
-    command: command: [ elasticsearch, -E, network.host=0.0.0.0, -E, discovery.zen.ping.unicast.hosts=elasticsearch,  ]
     volumes:
       - elastic_data:/usr/share/elasticsearch/data
     environment:
