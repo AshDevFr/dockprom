@@ -1,8 +1,8 @@
-version: '2'
+version: '3'
 
 networks:
   monitor-net:
-    driver: bridge
+    driver: overlay
 
 volumes:
     prometheus_data: {}
@@ -12,7 +12,6 @@ services:
 
   prometheus:
     image: prom/prometheus
-    container_name: prometheus
     volumes:
       - ./prometheus/:/etc/prometheus/
       - prometheus_data:/prometheus
@@ -21,74 +20,87 @@ services:
       - '-storage.local.path=/prometheus'
       - '-alertmanager.url=http://alertmanager:9093'
       - '-storage.local.memory-chunks=100000'
-    restart: unless-stopped
-    expose:
-      - 9090
-    ports:
-      - 9090:9090
     networks:
       - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
-  
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 1024M
+        reservations:
+          cpus: '0.50'
+          memory: 128M
+
+  grafana:
+    image: grafana/grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    env_file:
+      - user.config
+    networks:
+      - monitor-net
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 64M
+        reservations:
+          cpus: '0.50'
+          memory: 32M
+
   alertmanager:
     image: prom/alertmanager
-    container_name: alertmanager
-    volumes: 
+    volumes:
       - ./alertmanager/:/etc/alertmanager/
     command:
       - '-config.file=/etc/alertmanager/config.yml'
       - '-storage.path=/alertmanager'
-    restart: unless-stopped
-    expose:
-      - 9093
-    ports:
-      - 9093:9093
     networks:
       - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.01'
+          memory: 32M
+        reservations:
+          cpus: '0.01'
+          memory: 16M
 
   nodeexporter:
     image: prom/node-exporter
-    container_name: nodeexporter
-    restart: unless-stopped
-    expose:
-      - 9100
     networks:
       - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
+    deploy:
+      mode: global
+      resources:
+        limits:
+          cpus: '0.10'
+          memory: 32M
+        reservations:
+          cpus: '0.10'
+          memory: 16M
 
   cadvisor:
-    image: google/cadvisor:v0.24.1
-    container_name: cadvisor
+    image: google/cadvisor:v0.25.0
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-    restart: unless-stopped
-    expose:
-      - 8080
     networks:
       - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
-  
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
-    volumes:
-      - grafana_data:/var/lib/grafana
-    env_file:
-      - user.config
-    restart: unless-stopped
-    expose:
-      - 3000
-    ports:
-      - 3000:3000
-    networks:
-      - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
+    deploy:
+      mode: global
+      resources:
+        limits:
+          cpus: '0.10'
+          memory: 128M
+        reservations:
+          cpus: '0.10'
+          memory: 64M
