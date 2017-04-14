@@ -1,3 +1,3 @@
 FROM prom/prometheus
 
-COPY ./etc/prometheus /etc/
+COPY etc/prometheus/ /etc/prometheus/
